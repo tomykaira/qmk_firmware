@@ -18,15 +18,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#ifndef CONFIG_USER_H
+#define CONFIG_USER_H
 
-/* Use I2C or Serial, not both */
+// if you need more program area, try uncomment follow line
+//#include "serial_config_simpleapi.h"
 
-// #define USE_SERIAL
-#define USE_I2C
+// place overrides here
 
-/* Select hand configuration */
-
-// #define MASTER_LEFT
-#define MASTER_RIGHT
-// #define EE_HANDS
+#endif /* CONFIG_USER_H */

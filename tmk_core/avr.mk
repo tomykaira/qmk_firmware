@@ -8,7 +8,7 @@ OBJDUMP = avr-objdump
 SIZE = avr-size
 AR = avr-ar rcs
 NM = avr-nm
-HEX = $(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse -R .lock -R .signature
+HEX = $(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse -R .lock -R .signature -R .noinit
 EEP = $(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0 --no-change-warnings -O $(FORMAT)
 BIN =
 
