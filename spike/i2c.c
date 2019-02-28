@@ -1,9 +1,14 @@
+#ifndef F_CPU
+#define F_CPU 16000000UL // 16 MHz clock speed
+#endif
+
 #include <util/twi.h>
 #include <avr/io.h>
 #include <stdlib.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
 #include <stdbool.h>
+#include <util/delay.h>
 #include "i2c.h"
 
 #ifdef USE_I2C
@@ -16,13 +21,6 @@
 // poll loop takes at least 8 clock cycles to execute
 #define I2C_LOOP_TIMEOUT (9+1)*(F_CPU/SCL_CLOCK)/8
 
-#define BUFFER_POS_INC() (slave_buffer_pos = (slave_buffer_pos+1)%SLAVE_BUFFER_SIZE)
-
-volatile uint8_t i2c_slave_buffer[SLAVE_BUFFER_SIZE];
-
-static volatile uint8_t slave_buffer_pos;
-static volatile bool slave_has_register_set = false;
-
 // Wait for an i2c operation to finish
 inline static
 void i2c_delay(void) {
@@ -31,7 +29,7 @@ void i2c_delay(void) {
     lim++;
 
   // easier way, but will wait slightly longer
-  // _delay_us(100);
+  _delay_us(100);
 }
 
 // Setup twi to run at 100kHz
@@ -105,58 +103,11 @@ void i2c_reset_state(void) {
 }
 
 void i2c_slave_init(uint8_t address) {
-  TWAR = address << 0; // slave i2c address
+  TWAR = address << 1; // slave i2c address
   // TWEN  - twi enable
   // TWEA  - enable address acknowledgement
   // TWINT - twi interrupt flag
   // TWIE  - enable the twi interrupt
   TWCR = (1<<TWIE) | (1<<TWEA) | (1<<TWINT) | (1<<TWEN);
-}
-
-ISR(TWI_vect);
-
-ISR(TWI_vect) {
-  uint8_t ack = 1;
-  switch(TW_STATUS) {
-    case TW_SR_SLA_ACK:
-      // this device has been addressed as a slave receiver
-      slave_has_register_set = false;
-      break;
-
-    case TW_SR_DATA_ACK:
-      // this device has received data as a slave receiver
-      // The first byte that we receive in this transaction sets the location
-      // of the read/write location of the slaves memory that it exposes over
-      // i2c.  After that, bytes will be written at slave_buffer_pos, incrementing
-      // slave_buffer_pos after each write.
-      if(!slave_has_register_set) {
-        slave_buffer_pos = TWDR;
-        // don't acknowledge the master if this memory loctaion is out of bounds
-        if ( slave_buffer_pos >= SLAVE_BUFFER_SIZE ) {
-          ack = 0;
-          slave_buffer_pos = 0;
-        }
-        slave_has_register_set = true;
-      } else {
-        i2c_slave_buffer[slave_buffer_pos] = TWDR;
-        BUFFER_POS_INC();
-      }
-      break;
-
-    case TW_ST_SLA_ACK:
-    case TW_ST_DATA_ACK:
-      // master has addressed this device as a slave transmitter and is
-      // requesting data.
-      TWDR = i2c_slave_buffer[slave_buffer_pos];
-      BUFFER_POS_INC();
-      break;
-
-    case TW_BUS_ERROR: // something went wrong, reset twi state
-      TWCR = 0;
-    default:
-      break;
-  }
-  // Reset everything, so we are ready for the next TWI interrupt
-  TWCR |= (1<<TWIE) | (1<<TWINT) | (ack<<TWEA) | (1<<TWEN);
 }
 #endif

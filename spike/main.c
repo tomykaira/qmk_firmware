@@ -2,8 +2,12 @@
 #define F_CPU 16000000UL // 16 MHz clock speed
 #endif
 
+#include <avr/interrupt.h>
 #include <avr/io.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <util/delay.h>
+#include <util/twi.h>
 #include "config_common.h"
 #include "i2c.h"
 
@@ -83,18 +87,19 @@ int main(void) {
 	_SFR_IO8((SWITCH_PIN >> 4) + 2) |=  _BV(SWITCH_PIN & 0xF); // pull hi
 	_SFR_IO8((LED_PIN    >> 4) + 1) |=  _BV(LED_PIN    & 0xF); // out
 
+#ifdef MASTER
 	i2c_master_init();
+#else
+	sei();
+#endif
 	timer_init();
 	i2c_slave_init(I2C_ADDRESS);
 
 	_SFR_IO8((LED_PIN >> 4) + 2) &= ~_BV(LED_PIN & 0xF); // LO
 	while(1) {
 		if ((_SFR_IO8(SWITCH_PIN >> 4) & _BV(SWITCH_PIN & 0xF)) == 0) { // lo
-			uint8_t err = i2c_master_start((I2C_ADDRESS << 1) + I2C_WRITE);
+			uint8_t err = i2c_master_start((I2C_ADDRESS << 1) | I2C_WRITE); // i2c_start_write(I2C_ADDRESS);
 			if (err) {
-				if (err==2) {
-				_SFR_IO8((LED_PIN >> 4) + 2) |= _BV(LED_PIN & 0xF); // hi
-				}
 				i2c_reset_state();
 				continue;
 			}
@@ -107,7 +112,8 @@ int main(void) {
 				continue;
 			}
 			i2c_master_stop();
-			_delay_ms(1000);
+			_SFR_IO8((LED_PIN >> 4) + 2) |= _BV(LED_PIN & 0xF); // hi
+			_delay_ms(1);
 		}
 		if (i2c_slave_buffer[0] == CODE) {
 			_SFR_IO8((LED_PIN >> 4) + 2) |= _BV(LED_PIN & 0xF); // hi
@@ -116,4 +122,62 @@ int main(void) {
 		}
 		_SFR_IO8((LED_PIN >> 4) + 2) &= ~_BV(LED_PIN & 0xF); // LO
 	}
+}
+
+#define BUFFER_POS_INC() (slave_buffer_pos = (slave_buffer_pos+1)%SLAVE_BUFFER_SIZE)
+
+volatile uint8_t i2c_slave_buffer[SLAVE_BUFFER_SIZE];
+
+static volatile uint8_t slave_buffer_pos;
+static volatile bool slave_has_register_set = false;
+
+ISR(TWI_vect) {
+	uint8_t ack = 1;
+	switch(TW_STATUS) {
+		case TW_SR_SLA_ACK:
+			// this device has been addressed as a slave receiver
+			slave_has_register_set = false;
+			TWCR |= (1<<TWIE) | (1<<TWINT) | (ack<<TWEA) | (1<<TWEN);
+			return;
+
+		case TW_SR_DATA_ACK:
+			// this device has received data as a slave receiver
+			// The first byte that we receive in this transaction sets the location
+			// of the read/write location of the slaves memory that it exposes over
+			// i2c.  After that, bytes will be written at slave_buffer_pos, incrementing
+			// slave_buffer_pos after each write.
+			if(!slave_has_register_set) {
+				slave_buffer_pos = TWDR;
+				// don't acknowledge the master if this memory loctaion is out of bounds
+				if ( slave_buffer_pos >= SLAVE_BUFFER_SIZE ) {
+					TWCR &= ~(1<<TWEA);
+					slave_buffer_pos = 0;
+					TWCR |= (1<<TWIE) | (1<<TWINT) | (1<<TWEN);
+					return;
+				}
+				slave_has_register_set = true;
+			} else {
+				i2c_slave_buffer[slave_buffer_pos] = TWDR;
+				BUFFER_POS_INC();
+			}
+			TWCR |= (1<<TWIE) | (1<<TWINT) | (1<<TWEA) | (1<<TWEN);
+			return;
+
+		case TW_ST_DATA_ACK:
+			// master has addressed this device as a slave transmitter and is
+			// requesting data.
+			TWDR = i2c_slave_buffer[slave_buffer_pos];
+			BUFFER_POS_INC();
+			TWCR |= (1<<TWIE) | (1<<TWINT) | (1<<TWEA) | (1<<TWEN);
+			return;
+
+		case TW_BUS_ERROR: // something went wrong, reset twi state
+			TWCR = 0;
+			TWCR |= (1<<TWIE) | (1<<TWEA) | (1<<TWEN);
+			return;
+		default:
+			TWCR |= (1<<TWIE) | (1<<TWEA) | (1<<TWEN);
+			return;
+	}
+	// Reset everything, so we are ready for the next TWI interrupt
 }
