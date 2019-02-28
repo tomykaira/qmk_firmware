@@ -54,7 +54,7 @@ uint8_t i2c_master_start(uint8_t address) {
 
   // check that we started successfully
   if ( (TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START))
-    return 1;
+    return 2;
 
   TWDR = address;
   TWCR = (1<<TWINT) | (1<<TWEN);
