@@ -87,17 +87,15 @@ int main(void) {
 	_SFR_IO8((SWITCH_PIN >> 4) + 2) |=  _BV(SWITCH_PIN & 0xF); // pull hi
 	_SFR_IO8((LED_PIN    >> 4) + 1) |=  _BV(LED_PIN    & 0xF); // out
 
-#ifdef MASTER
 	i2c_master_init();
-#else
 	sei();
-#endif
 	timer_init();
 	i2c_slave_init(I2C_ADDRESS);
 
 	_SFR_IO8((LED_PIN >> 4) + 2) &= ~_BV(LED_PIN & 0xF); // LO
 	while(1) {
 		if ((_SFR_IO8(SWITCH_PIN >> 4) & _BV(SWITCH_PIN & 0xF)) == 0) { // lo
+			_SFR_IO8((LED_PIN >> 4) + 2) |= _BV(LED_PIN & 0xF); // hi
 			uint8_t err = i2c_master_start((I2C_ADDRESS << 1) | I2C_WRITE); // i2c_start_write(I2C_ADDRESS);
 			if (err) {
 				i2c_reset_state();
@@ -112,13 +110,12 @@ int main(void) {
 				continue;
 			}
 			i2c_master_stop();
-			_SFR_IO8((LED_PIN >> 4) + 2) |= _BV(LED_PIN & 0xF); // hi
 			_delay_ms(1);
 		}
 		if (i2c_slave_buffer[0] == CODE) {
 			_SFR_IO8((LED_PIN >> 4) + 2) |= _BV(LED_PIN & 0xF); // hi
 			i2c_slave_buffer[0] == 0;
-			_delay_ms(1000);
+			_delay_ms(1);
 		}
 		_SFR_IO8((LED_PIN >> 4) + 2) &= ~_BV(LED_PIN & 0xF); // LO
 	}

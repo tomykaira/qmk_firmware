@@ -1,5 +1,5 @@
 MCU = atmega32u4
-CFLAGS += -mmcu=$(MCU) -Os -I../quantum -I../quantum/audio -DUSE_I2C -D$(MASTER)
+CFLAGS += -mmcu=$(MCU) -Os -I../quantum -I../quantum/audio -DUSE_I2C
 CC = avr-gcc
 GREP=grep
 
@@ -8,6 +8,9 @@ GREP=grep
 
 %.s : %.c
 	$(CC) -S $(CFLAGS) $< -o $@
+
+%.o : %.S
+	$(CC) -c $(CFLAGS) $< -o $@
 
 main.elf: i2c.o main.o
 	$(CC) $(CFLAGS) -o $@ $^
