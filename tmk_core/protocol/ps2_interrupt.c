@@ -132,7 +132,7 @@ ERROR:
 uint8_t ps2_host_recv_response(void)
 {
     // Command may take 25ms/20ms at most([5]p.46, [3]p.21)
-    uint8_t retry = 25;
+    uint8_t retry = 255;
     while (retry-- && !pbuf_has_data()) {
         _delay_ms(1);
     }

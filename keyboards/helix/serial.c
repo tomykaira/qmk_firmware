@@ -416,6 +416,7 @@ static inline uint8_t nibble_bits_count(uint8_t bits)
 }
 
 // interrupt handle to be used by the target device
+#if 0
 ISR(SERIAL_PIN_INTERRUPT) {
 
 #ifndef SERIAL_USE_MULTI_TRANSACTION
@@ -463,6 +464,7 @@ ISR(SERIAL_PIN_INTERRUPT) {
 
   sync_recv(); //weit initiator output to high
 }
+#endif
 
 /////////
 //  start transaction by initiator

@@ -63,7 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // wiring of each half
 #define MATRIX_COLS 7
-#define MATRIX_COL_PINS { F5, F6, F7, B1, B3, B2, B6 }
+#define MATRIX_COL_PINS { F5, F6, F7, B1, B3, F4, D1 }
 // #define MATRIX_COL_PINS { B2, B3, B1, F7, F6, F5, F4 } //uncomment this line and comment line above if you need to reverse left-to-right key order
 
 /* define if matrix has ghost */
@@ -161,5 +161,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define NO_ACTION_MACRO
 //#define NO_ACTION_FUNCTION
 
+#ifdef PS2_USE_INT
+#define PS2_CLOCK_PORT  PORTB
+#define PS2_CLOCK_PIN   PINB
+#define PS2_CLOCK_DDR   DDRB
+#define PS2_CLOCK_BIT   2
+#define PS2_DATA_PORT   PORTB
+#define PS2_DATA_PIN    PINB
+#define PS2_DATA_DDR    DDRB
+#define PS2_DATA_BIT    6
+
+#if 0
+#define PS2_INT_INIT()  do {    \
+	EICRA |= ((1<<ISC21) |      \
+			(0<<ISC20));      \
+} while (0)
+#define PS2_INT_ON()  do {      \
+	EIMSK |= (1<<INT2);         \
+} while (0)
+#define PS2_INT_OFF() do {      \
+	EIMSK &= ~(1<<INT2);        \
+} while (0)
+#define PS2_INT_VECT   INT2_vect
+#endif
+
+#define PS2_INT_INIT()  do {    \
+	PCICR |= ((1<<PCIE0));      \
+} while (0)
+#define PS2_INT_ON()  do {      \
+	PCMSK0 |= (1<<PCINT2);         \
+} while (0)
+#define PS2_INT_OFF() do {      \
+	PCMSK0 &= ~(1<<PCINT2);        \
+} while (0)
+#define PS2_INT_VECT   PCINT0_vect
+#endif
+
+#define PS2_MOUSE_DEBUG_HID
+#define PS2_MOUSE_DEBUG_RAW
 
 #endif
