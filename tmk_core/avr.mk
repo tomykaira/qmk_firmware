@@ -224,6 +224,8 @@ define EXEC_AVRDUDE
 	fi
 endef
 
+# -U eeprom:w:quantum/split_common/eeprom-lefthand.eep:i
+
 avrdude: $(BUILD_DIR)/$(TARGET).hex check-size cpfirmware
 	$(call EXEC_AVRDUDE)
 

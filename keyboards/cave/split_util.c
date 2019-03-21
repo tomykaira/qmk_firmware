@@ -9,6 +9,7 @@
 #include "keyboard.h"
 #include "config.h"
 #include "timer.h"
+#include "protocol/ps2_mouse.h"
 
 #ifdef USE_I2C
 #  include "i2c.h"
@@ -51,6 +52,8 @@ static void keyboard_slave_setup(void) {
 #endif
 }
 
+static void ps2_mouse_slave_put_data(void);
+
 bool has_usb(void) {
    USBCON |= (1 << OTGPADE); //enables VBUS pad
    _delay_us(5);
@@ -70,9 +73,12 @@ void split_keyboard_setup(void) {
 
 void keyboard_slave_loop(void) {
    matrix_init();
+   ps2_mouse_init();
 
    while (1) {
       matrix_slave_scan();
+      ps2_mouse_task(true);
+      ps2_mouse_slave_put_data();
    }
 }
 
@@ -82,5 +88,22 @@ void matrix_setup(void) {
 
     if (!has_usb()) {
         keyboard_slave_loop();
+    }
+}
+
+static uint8_t mouse_buffer[4];
+
+void ps2_mouse_slave_send(report_mouse_t *mouse_report) {
+    mouse_buffer[0] = mouse_report->x;
+    mouse_buffer[1] = mouse_report->y;
+    mouse_buffer[2] = mouse_report->v;
+    mouse_buffer[3] = mouse_report->h;
+}
+
+static void ps2_mouse_slave_put_data(void) {
+    int offset = 5; // (MATRIX_ROWS/2); // see matrix.c matrix_slave_scan()
+    for (int i = 0; i < 4; ++i) {
+        i2c_slave_buffer[offset + i] = mouse_buffer[i];
+        mouse_buffer[i] = 0;
     }
 }

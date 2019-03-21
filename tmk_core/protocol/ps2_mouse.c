@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "report.h"
 #include "debug.h"
 #include "ps2.h"
+#include "keyboard.h"
 
 /* ============================= MACROS ============================ */
 
@@ -70,7 +71,7 @@ __attribute__((weak))
 void ps2_mouse_init_user(void) {
 }
 
-void ps2_mouse_task(void) {
+void ps2_mouse_task(bool is_slave) {
     static uint8_t buttons_prev = 0;
     extern int tp_buttons;
 
@@ -119,7 +120,11 @@ void ps2_mouse_task(void) {
         // Used to debug the bytes sent to the host
         ps2_mouse_print_report(&mouse_report);
 #endif
-        host_mouse_send(&mouse_report);
+	if (is_slave) {
+            ps2_mouse_slave_send(&mouse_report);
+	} else {
+            host_mouse_send(&mouse_report);
+        }
     }
 
     ps2_mouse_clear_report(&mouse_report);

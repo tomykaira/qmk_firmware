@@ -312,7 +312,7 @@ MATRIX_LOOP_END:
 #endif
 
 #ifdef PS2_MOUSE_ENABLE
-    ps2_mouse_task();
+    ps2_mouse_task(false);
 #endif
 
 #ifdef SERIAL_MOUSE_ENABLE

@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "pro_micro.h"
 #include "config.h"
 #include "timer.h"
+#include "report.h"
+#include "host.h"
 
 #ifdef USE_I2C
 #  include "i2c.h"
@@ -187,6 +189,9 @@ uint8_t _matrix_scan(void)
     return 1;
 }
 
+int8_t slave_mouse_buffer[4];
+static report_mouse_t mouse_report = {};
+
 #ifdef USE_I2C
 
 // Get rows from other half over i2c
@@ -206,10 +211,14 @@ int i2c_transaction(void) {
 
     if (!err) {
         int i;
-        for (i = 0; i < ROWS_PER_HAND-1; ++i) {
+        for (i = 0; i < ROWS_PER_HAND; ++i) {
             matrix[slaveOffset+i] = i2c_master_read(I2C_ACK);
         }
-        matrix[slaveOffset+i] = i2c_master_read(I2C_NACK);
+        for (i = 0; i < 4 - 1; ++i) {
+            slave_mouse_buffer[i] = i2c_master_read(I2C_ACK);
+        }
+        slave_mouse_buffer[i] = i2c_master_read(I2C_NACK);
+
         i2c_master_stop();
     } else {
 i2c_error: // the cable is disconnceted, or something else went wrong
@@ -238,7 +247,6 @@ int serial_transaction(void) {
 
 uint8_t matrix_scan(void)
 {
-    print("s");
     uint8_t ret = _matrix_scan();
 
 #ifdef USE_I2C
@@ -264,6 +272,20 @@ uint8_t matrix_scan(void)
         error_count = 0;
     }
     matrix_scan_quantum();
+
+    // MOUSE EXT
+    if (slave_mouse_buffer[0] ||
+            slave_mouse_buffer[1] ||
+            slave_mouse_buffer[2] ||
+            slave_mouse_buffer[3]) {
+        mouse_report.buttons = 0;
+        mouse_report.x = slave_mouse_buffer[0];
+        mouse_report.y = slave_mouse_buffer[1];
+        mouse_report.v = slave_mouse_buffer[2];
+        mouse_report.h = slave_mouse_buffer[3];
+        host_mouse_send(&mouse_report);
+    }
+
     return ret;
 }
 
