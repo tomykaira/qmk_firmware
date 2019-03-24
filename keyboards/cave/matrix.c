@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "timer.h"
 #include "report.h"
 #include "host.h"
+#include "quantum.h"
 
 #ifdef USE_I2C
 #  include "i2c.h"
@@ -186,6 +187,13 @@ uint8_t _matrix_scan(void)
         }
 #   endif
 
+    if (matrix[offset] & 0x1 &&
+            matrix[offset+1] & 0x1 &&
+            matrix[offset+2] & 0x1) {
+        reset_keyboard();
+    }
+
+
     return 1;
 }
 
@@ -279,10 +287,10 @@ uint8_t matrix_scan(void)
             slave_mouse_buffer[2] ||
             slave_mouse_buffer[3]) {
         mouse_report.buttons = 0;
-        mouse_report.x = slave_mouse_buffer[0];
-        mouse_report.y = slave_mouse_buffer[1];
-        mouse_report.v = slave_mouse_buffer[2];
-        mouse_report.h = slave_mouse_buffer[3];
+        mouse_report.x = 0;
+        mouse_report.y = 0;
+        mouse_report.v = slave_mouse_buffer[1];
+        mouse_report.h = slave_mouse_buffer[0];
         host_mouse_send(&mouse_report);
     }
 
