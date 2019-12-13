@@ -253,6 +253,10 @@ int serial_transaction(void) {
 }
 #endif
 
+static int8_t scroll_rem_v = 0;
+static int8_t scroll_rem_h = 0;
+#define SCROLL_DIV 3
+
 uint8_t matrix_scan(void)
 {
     uint8_t ret = _matrix_scan();
@@ -289,8 +293,10 @@ uint8_t matrix_scan(void)
         mouse_report.buttons = 0;
         mouse_report.x = 0;
         mouse_report.y = 0;
-        mouse_report.v = slave_mouse_buffer[1];
-        mouse_report.h = slave_mouse_buffer[0];
+        mouse_report.v = slave_mouse_buffer[1] / SCROLL_DIV + scroll_rem_v;
+        mouse_report.h = -(slave_mouse_buffer[0] / SCROLL_DIV + scroll_rem_h);
+	scroll_rem_v = slave_mouse_buffer[1] % SCROLL_DIV;
+	scroll_rem_h = slave_mouse_buffer[0] % SCROLL_DIV;
         host_mouse_send(&mouse_report);
     }
 
