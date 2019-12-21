@@ -33,6 +33,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "report.h"
 #include "host.h"
 #include "quantum.h"
+#include "mouse_timer.h"
+
+uint16_t host_mouse_send_ms = HOST_MOUSE_SEND_MS_UNSET;
 
 #ifdef USE_I2C
 #  include "i2c.h"
@@ -298,6 +301,7 @@ uint8_t matrix_scan(void)
 	scroll_rem_v = slave_mouse_buffer[1] % SCROLL_DIV;
 	scroll_rem_h = slave_mouse_buffer[0] % SCROLL_DIV;
         host_mouse_send(&mouse_report);
+	host_mouse_send_ms = timer_read();
     }
 
     return ret;

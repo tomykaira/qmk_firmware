@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "debug.h"
 #include "ps2.h"
 #include "keyboard.h"
+#include "mouse_timer.h"
 
 /* ============================= MACROS ============================ */
 
@@ -123,6 +124,7 @@ void ps2_mouse_task(bool is_slave) {
 	if (is_slave) {
             ps2_mouse_slave_send(&mouse_report);
 	} else {
+            host_mouse_send_ms = timer_read();
             host_mouse_send(&mouse_report);
         }
     }
