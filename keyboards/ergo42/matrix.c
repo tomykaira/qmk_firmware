@@ -60,8 +60,6 @@ static matrix_row_t matrix_debouncing[MATRIX_ROWS];
 
 #define ROWS_PER_HAND (MATRIX_ROWS/2)
 
-static uint8_t error_count = 0;
-
 static const uint8_t row_pins[MATRIX_ROWS] = MATRIX_ROW_PINS;
 static const uint8_t col_pins[MATRIX_COLS] = MATRIX_COL_PINS;
 
@@ -95,10 +93,7 @@ void matrix_scan_kb(void) {
 
 __attribute__ ((weak))
 void matrix_init_user(void) {
-}
-
-__attribute__ ((weak))
-void matrix_scan_user(void) {
+	i2c_master_init();
 }
 
 inline
@@ -239,29 +234,6 @@ int serial_transaction(void) {
 uint8_t matrix_scan(void)
 {
     uint8_t ret = _matrix_scan();
-
-#ifdef USE_I2C
-    if( i2c_transaction() ) {
-#else // USE_SERIAL
-    if( serial_transaction() ) {
-#endif
-        // turn on the indicator led when halves are disconnected
-        TXLED1;
-
-        error_count++;
-
-        if (error_count > ERROR_DISCONNECT_COUNT) {
-            // reset other half if disconnected
-            int slaveOffset = (isLeftHand) ? (ROWS_PER_HAND) : 0;
-            for (int i = 0; i < ROWS_PER_HAND; ++i) {
-                matrix[slaveOffset+i] = 0;
-            }
-        }
-    } else {
-        // turn off the indicator led on no error
-        TXLED0;
-        error_count = 0;
-    }
     matrix_scan_quantum();
     return ret;
 }

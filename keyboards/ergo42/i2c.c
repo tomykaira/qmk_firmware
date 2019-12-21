@@ -5,6 +5,8 @@
 #include <util/twi.h>
 #include <stdbool.h>
 #include "i2c.h"
+#include <print.h>
+#include <util/delay.h>
 
 #ifdef USE_I2C
 
@@ -31,7 +33,7 @@ void i2c_delay(void) {
     lim++;
 
   // easier way, but will wait slightly longer
-  // _delay_us(100);
+  _delay_us(100);
 }
 
 // Setup twi to run at 100kHz
@@ -53,16 +55,20 @@ uint8_t i2c_master_start(uint8_t address) {
   i2c_delay();
 
   // check that we started successfully
-  if ( (TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START))
+  if ( (TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
+	  print("fail 0\n");
     return 1;
+  }
 
   TWDR = address;
   TWCR = (1<<TWINT) | (1<<TWEN);
 
   i2c_delay();
 
-  if ( (TW_STATUS != TW_MT_SLA_ACK) && (TW_STATUS != TW_MR_SLA_ACK) )
+  if ( (TW_STATUS != TW_MT_SLA_ACK) && (TW_STATUS != TW_MR_SLA_ACK) ) {
+	  print("fail 1\n");
     return 1; // slave did not acknowledge
+  }
   else
     return 0; // success
 }
