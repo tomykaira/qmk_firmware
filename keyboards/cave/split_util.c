@@ -101,9 +101,12 @@ void ps2_mouse_slave_send(report_mouse_t *mouse_report) {
 }
 
 static void ps2_mouse_slave_put_data(void) {
+	// now disabled
+	/*
     int offset = 5; // (MATRIX_ROWS/2); // see matrix.c matrix_slave_scan()
     for (int i = 0; i < 4; ++i) {
         i2c_slave_buffer[offset + i] = mouse_buffer[i];
         mouse_buffer[i] = 0;
     }
+    */
 }

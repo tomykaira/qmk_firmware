@@ -56,11 +56,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /* key matrix size */
 // Rows are doubled-up
 #define MATRIX_ROWS 10
-#define MATRIX_ROW_PINS { F6, F7, B1, B3, F5 }
+//#define MATRIX_ROW_PINS { F6, F7, B1, B3, F5 }
+#define MATRIX_ROW_PINS { D4, C6, D7, E6, B4 }
 
 // wiring of each half
 #define MATRIX_COLS 7
-#define MATRIX_COL_PINS { D4, C6, D7, E6, B4, B5, D2 }
+//#define MATRIX_COL_PINS { D4, C6, D7, E6, B4, B5, D2 }
+#define MATRIX_COL_PINS { B5, B3, B1, F7, F6, F4, F5 }
 
 /* define if matrix has ghost */
 //#define MATRIX_HAS_GHOST
