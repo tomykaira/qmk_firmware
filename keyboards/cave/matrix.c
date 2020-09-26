@@ -200,9 +200,6 @@ uint8_t _matrix_scan(void)
     return 1;
 }
 
-int8_t slave_mouse_buffer[4];
-static report_mouse_t mouse_report = {};
-
 #ifdef USE_I2C
 
 // Get rows from other half over i2c
@@ -225,10 +222,6 @@ int i2c_transaction(void) {
         for (i = 0; i < ROWS_PER_HAND; ++i) {
             matrix[slaveOffset+i] = i2c_master_read(I2C_ACK);
         }
-        for (i = 0; i < 4 - 1; ++i) {
-            slave_mouse_buffer[i] = i2c_master_read(I2C_ACK);
-        }
-        slave_mouse_buffer[i] = i2c_master_read(I2C_NACK);
 
         i2c_master_stop();
     } else {
@@ -255,10 +248,6 @@ int serial_transaction(void) {
     return 0;
 }
 #endif
-
-static int8_t scroll_rem_v = 0;
-static int8_t scroll_rem_h = 0;
-#define SCROLL_DIV 3
 
 uint8_t matrix_scan(void)
 {
@@ -287,22 +276,6 @@ uint8_t matrix_scan(void)
         error_count = 0;
     }
     matrix_scan_quantum();
-
-    // MOUSE EXT
-    if (slave_mouse_buffer[0] ||
-            slave_mouse_buffer[1] ||
-            slave_mouse_buffer[2] ||
-            slave_mouse_buffer[3]) {
-        mouse_report.buttons = 0;
-        mouse_report.x = 0;
-        mouse_report.y = 0;
-        mouse_report.v = slave_mouse_buffer[1] / SCROLL_DIV + scroll_rem_v;
-        mouse_report.h = -(slave_mouse_buffer[0] / SCROLL_DIV + scroll_rem_h);
-	scroll_rem_v = slave_mouse_buffer[1] % SCROLL_DIV;
-	scroll_rem_h = slave_mouse_buffer[0] % SCROLL_DIV;
-        host_mouse_send(&mouse_report);
-	host_mouse_send_ms = timer_read();
-    }
 
     return ret;
 }
