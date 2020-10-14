@@ -14,6 +14,8 @@ extern keymap_config_t keymap_config;
 #define _______ KC_TRNS
 #define XXXXXXX KC_NO
 
+#define MY_UNDS RSFT(JP_BSLS)
+
 enum custom_keycodes {
   MY_COMMA = SAFE_RANGE,
   MY_UU,
@@ -55,7 +57,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_TAB,   KC_Q,      KC_W,     KC_E,    KC_R,     KC_T,    KC_LANG2, JP_COLN, KC_Y,   KC_U,   KC_I,    KC_O,   KC_P,    JP_MINS, \
       KC_LCTL,  KC_A,      KC_S,     KC_D,    KC_F,     KC_G,    JP_DLR,   KC_BSPC, KC_H,   KC_J,   KC_K,    KC_L,   MY_SCLN, JP_LBRC, \
       KC_GT,    KC_Z,      KC_X,     KC_C,    KC_V,     KC_B,    KC_ESC,   JP_COLN, KC_N,   KC_M,   JP_COMM, JP_DOT, JP_SLSH, JP_RBRC, \
-      JP_GRV,   JP_CIRC,   KC_LALT,  KC_LGUI, MO(SYMB), KC_SPC,  MO(META), JP_EQL , MY_LSFT,JP_UNDS,_______, _______,JP_AT,  JP_YEN, \
+      JP_GRV,   JP_CIRC,   KC_LALT,  KC_LGUI, MO(SYMB), KC_SPC,  MO(META), JP_EQL , MY_LSFT,MY_UNDS,_______, _______,JP_AT,  JP_YEN, \
       _______,  MO(MOUSE), _______ , KC_ENT  ,_______,  _______, _______,  _______, _______,  _______, _______, _______, _______, _______    \
       ),
 
@@ -71,7 +73,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_TAB,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,    JP_RPRN,  JP_AMPR, KC_7,    KC_8,    KC_9,    JP_ASTR, JP_MINS, \
       KC_LCTL, KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,   KC_BSPC,  JP_DQT , KC_4,    KC_5,    KC_6,    JP_PLUS, JP_LBRC, \
       KC_LSFT, JP_PERC, JP_CIRC, JP_LBRC, JP_RBRC, JP_TILD, KC_ESC,    KC_B   , KC_0   , KC_1,    KC_2,    KC_3,    KC_0   , JP_RBRC, \
-      _______, _______, _______, _______, _______, _______, _______,   JP_UNDS, _______, _______, _______, _______, JP_EQL , _______,\
+      _______, _______, _______, _______, _______, _______, _______,   MY_UNDS, _______, _______, _______, _______, JP_EQL , _______,\
       _______, _______, _______, _______, _______, _______, _______,   _______, _______, _______, _______, _______, _______,  _______ \
       ),
 
