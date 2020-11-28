@@ -222,6 +222,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       } else {
         unregister_code(JP_SCLN);
         unregister_code(JP_COLN);
+	if (lshiftp) {
+	  register_code(KC_LSFT);
+	}
       }
       break;
     case MY_LSFT:
@@ -229,7 +232,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         lshiftp = true;
         unregister_code(KC_LSFT);
         register_code(KC_LSFT);
-        lshiftp = true;
       } else {
         unregister_code(KC_LSFT);
         lshiftp = false;
