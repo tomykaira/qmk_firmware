@@ -40,6 +40,13 @@ enum custom_keycodes {
   MY_LSFT,
 };
 
+const uint16_t PROGMEM combo_esc[] = {KC_TAB, KC_Q, COMBO_END};
+const uint16_t PROGMEM combo_enter[] = {KC_O, KC_P, COMBO_END};
+combo_t key_combos[COMBO_COUNT] = {
+  COMBO(combo_esc, KC_ESC),
+  COMBO(combo_enter, KC_ENT)
+};
+
 enum mouse_button {
   BUTTON_BTN1 = 1 << 0,
   BUTTON_BTN2 = 1 << 1,

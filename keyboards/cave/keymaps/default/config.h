@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_USER_H
 
 // place overrides here
+#define COMBO_COUNT 2
+#define COMBO_TERM 60
 
 // If you need more program area, try select and reduce rgblight modes to use.
 
