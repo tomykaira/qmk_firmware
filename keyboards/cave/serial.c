@@ -80,17 +80,6 @@ void sync_recv(void) {
   serial_delay();
 }
 
-// Used by the slave to send a synchronization signal to the master.
-static
-void sync_send(void) {
-  serial_output();
-
-  serial_low();
-  serial_delay();
-
-  serial_high();
-}
-
 // Reads a byte from the serial line
 static
 uint8_t serial_read_byte(void) {
@@ -120,41 +109,51 @@ void serial_write_byte(uint8_t data) {
   }
 }
 
-// interrupt handle to be used by the slave device
-ISR(SERIAL_PIN_INTERRUPT) {
-  sync_send();
-
-  uint8_t checksum = 0;
-  for (int i = 0; i < SERIAL_SLAVE_BUFFER_LENGTH; ++i) {
-    serial_write_byte(serial_slave_buffer[i]);
-    sync_send();
-    checksum += serial_slave_buffer[i];
-  }
-  serial_write_byte(checksum);
-  sync_send();
-
-  // wait for the sync to finish sending
+static
+void send_uart(uint8_t data) {
+  // start bit
+  serial_low();
   serial_delay();
 
-  // read the middle of pulses
-  _delay_us(SERIAL_DELAY/2);
-
-  uint8_t checksum_computed = 0;
-  for (int i = 0; i < SERIAL_MASTER_BUFFER_LENGTH; ++i) {
-    serial_master_buffer[i] = serial_read_byte();
-    sync_send();
-    checksum_computed += serial_master_buffer[i];
+  uint8_t b = 8;
+  uint8_t p = 1; // odd parity
+  while( b-- ) {
+    if(data & (1 << b)) {
+      serial_high();
+      p = !p;
+    } else {
+      serial_low();
+    }
+    serial_delay();
   }
-  uint8_t checksum_received = serial_read_byte();
-  sync_send();
+  // parity
+  if(p) {
+    serial_high();
+  } else {
+    serial_low();
+  }
+  serial_delay();
+
+  // stop (with minimum delay)
+  serial_high();
+  serial_delay();
+}
+
+// interrupt handle to be used by the slave device
+ISR(SERIAL_PIN_INTERRUPT) {
+  // Set high before start bit
+  serial_output();
+  serial_high();
+  // wait 2 serial delay
+  serial_delay();
+  serial_delay();
+
+  // start uart
+  for (int i = 0; i < SERIAL_SLAVE_BUFFER_LENGTH; ++i) {
+    send_uart(serial_slave_buffer[i]);
+  }
 
   serial_input(); // end transaction
-
-  if ( checksum_computed != checksum_received ) {
-    status |= SLAVE_DATA_CORRUPT;
-  } else {
-    status &= ~SLAVE_DATA_CORRUPT;
-  }
 }
 
 inline

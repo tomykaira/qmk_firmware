@@ -41,7 +41,7 @@ enum custom_keycodes {
 };
 
 const uint16_t PROGMEM combo_esc[] = {KC_TAB, KC_Q, COMBO_END};
-const uint16_t PROGMEM combo_enter[] = {KC_O, KC_P, COMBO_END};
+const uint16_t PROGMEM combo_enter[] = {KC_J, KC_K, COMBO_END};
 combo_t key_combos[COMBO_COUNT] = {
   COMBO(combo_esc, KC_ESC),
   COMBO(combo_enter, KC_ENT)
